@@ -56,6 +56,22 @@ export default Ember.Component.extend({
   }),
 
   /**
+   * Returns estimate duration in seconds for a step
+   * @property {Number} duration
+   */
+ estimate: Ember.computed({
+    get() {
+      const estimateTime = this.get('estimateTime'); 
+
+      if (estimateTime) {
+        return humanizeDuration(estimateTime, { round: true, largest: 2 });
+      }
+
+      return null;
+    }
+  }),
+
+  /**
    * Returns duration in seconds for a completed step
    * @property {Number} duration
    */

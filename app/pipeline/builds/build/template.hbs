@@ -18,6 +18,7 @@
     {{build-step
       stepName=name
       startTime=(get (index-of model.build.steps index) "startTime")
+      estimateTime=10
       endTime=(get (index-of model.build.steps index) "endTime")
       code=(get (index-of model.build.steps index) "code")
       buildId=model.build.id
