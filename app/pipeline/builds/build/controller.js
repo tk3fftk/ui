@@ -6,6 +6,7 @@ export default Ember.Controller.extend({
   loading: false,
   counter: 0,
   stepList: Ember.computed.mapBy('model.build.steps', 'name'),
+  estimateTimes: Ember.computed.mapBy('model.build.steps', 'endTime'),
 
   /**
    * Schedules a build to reload after a certain amount of time
