@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import DS from 'ember-data';
 
 export default Ember.Component.extend({
   classNames: ['step-view'],
@@ -62,45 +63,49 @@ export default Ember.Component.extend({
   estimate: Ember.computed({
     get() {
       const stepName = this.get('stepName');
+      var time = null;
 
       console.log(this.get('estimateTime'));
-      const estimateTime = this.get('estimateTime').then((builds) => {
-        let durations = [];
+      const estimateTime = new Ember.RSVP.Promise((resolve, reject) => {
+        this.get('estimateTime').then((builds) => {
+          let durations = [];
 
-        builds.forEach((build) => {
-          const steps = build.get('steps');
+          builds.forEach((build) => {
+            const steps = build.get('steps');
 
-          durations.push(steps.map((step) => {
-            if (step.name === stepName) {
-              const start = step.startTime;
-              const end = step.endTime;
+            durations.push(steps.map((step) => {
+              if (step.name === stepName) {
+                const start = step.startTime;
+                const end = step.endTime;
 
-              if (end && start) {
-                return Date.parse(end) - Date.parse(start);
+                if (end && start) {
+                  return Date.parse(end) - Date.parse(start);
+                }
               }
-            }
 
-            return null;
-          }));
+              return null;
+            }));
+          });
+
+          const flattenedDurations = [].concat.apply([], durations);
+          const filteredDurations = flattenedDurations.filter(val => val !== null);
+
+          const sum = filteredDurations.reduce((a, b) => a + b);
+
+          return sum / filteredDurations.length;
+        }).then((averageTime) => {
+          if (averageTime) {
+            console.log(humanizeDuration(averageTime, { round: true, largest: 2 }));
+
+            time = humanizeDuration(averageTime, { round: true, largest: 2 });
+            resolve(humanizeDuration(averageTime, { round: true, largest: 2 }));
+          }
+
+          reject();
         });
-
-        const flattenedDurations = [].concat.apply([], durations);
-        const filteredDurations = flattenedDurations.filter(val => val !== null);
-
-        const sum = filteredDurations.reduce((a, b) => a + b);
-
-        return sum / filteredDurations.length;
-      }).then((averageTime) => {
-        if (averageTime) {
-          console.log(humanizeDuration(averageTime, { round: true, largest: 2 }));
-
-          return humanizeDuration(averageTime, { round: true, largest: 2 });
-        }
-
-        return null;
       });
 
-      return estimateTime;
+      return time;
     }
   }),
 
