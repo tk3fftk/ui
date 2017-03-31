@@ -63,9 +63,6 @@ export default Ember.Component.extend({
   estimate: Ember.computed({
     get() {
       const stepName = this.get('stepName');
-      var time = null;
-
-      console.log(this.get('estimateTime'));
       const estimateTime = new Ember.RSVP.Promise((resolve, reject) => {
         this.get('estimateTime').then((builds) => {
           let durations = [];
@@ -95,9 +92,6 @@ export default Ember.Component.extend({
           return sum / filteredDurations.length;
         }).then((averageTime) => {
           if (averageTime) {
-            console.log(humanizeDuration(averageTime, { round: true, largest: 2 }));
-
-            time = humanizeDuration(averageTime, { round: true, largest: 2 });
             resolve(humanizeDuration(averageTime, { round: true, largest: 2 }));
           }
 
@@ -105,7 +99,7 @@ export default Ember.Component.extend({
         });
       });
 
-      return time;
+      return DS.PromiseObject.create({ promise: estimateTime });
     }
   }),
 
