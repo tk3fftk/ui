@@ -14,11 +14,11 @@
 
 {{#if stepList}}
 {{#build-step-collection}}
-  {{#each estimateTimes as |estimateTime index|}}
+  {{#each stepList as |name index|}}
     {{build-step
-      stepName=(get (index-of model.build.steps index) "name")
+      stepName=name
       startTime=(get (index-of model.build.steps index) "startTime")
-      estimateTime=1
+      estimateTime=model.job.builds
       endTime=(get (index-of model.build.steps index) "endTime")
       code=(get (index-of model.build.steps index) "code")
       buildId=model.build.id

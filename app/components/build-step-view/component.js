@@ -61,13 +61,46 @@ export default Ember.Component.extend({
    */
   estimate: Ember.computed({
     get() {
-      const estimateTime = this.get('estimateTime');
+      const stepName = this.get('stepName');
 
-      if (estimateTime) {
-        return humanizeDuration(estimateTime, { round: true, largest: 2 });
-      }
+      console.log(this.get('estimateTime'));
+      const estimateTime = this.get('estimateTime').then((builds) => {
+        let durations = [];
 
-      return null;
+        builds.forEach((build) => {
+          const steps = build.get('steps');
+
+          durations.push(steps.map((step) => {
+            if (step.name === stepName) {
+              const start = step.startTime;
+              const end = step.endTime;
+
+              if (end && start) {
+                return Date.parse(end) - Date.parse(start);
+              }
+            }
+
+            return null;
+          }));
+        });
+
+        const flattenedDurations = [].concat.apply([], durations);
+        const filteredDurations = flattenedDurations.filter(val => val !== null);
+
+        const sum = filteredDurations.reduce((a, b) => a + b);
+
+        return sum / filteredDurations.length;
+      }).then((averageTime) => {
+        if (averageTime) {
+          console.log(humanizeDuration(averageTime, { round: true, largest: 2 }));
+
+          return humanizeDuration(averageTime, { round: true, largest: 2 });
+        }
+
+        return null;
+      });
+
+      return estimateTime;
     }
   }),
 
