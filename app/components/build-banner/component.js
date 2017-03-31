@@ -1,10 +1,53 @@
 import Ember from 'ember';
+import DS from 'ember-data';
 
 export default Ember.Component.extend({
   classNames: ['build-banner'],
   classNameBindings: ['buildStatus'],
   isPR: Ember.computed.match('jobName', /^PR-/),
   jobNames: Ember.computed.mapBy('jobs', 'name'),
+  consecutiveSuccesses: Ember.computed('siblingBuilds', {
+    get() {
+      let successes = 0;
+      let failures = 0;
+      let lastStatus;
+      let currentStatus;
+      let result;
+
+      const consecutive = new Ember.RSVP.Promise((resolve) => {
+        this.get('siblingBuilds').then((builds) => {
+          builds.forEach((build) => {
+            lastStatus = currentStatus;
+            currentStatus = build.get('status');
+
+            if (currentStatus === 'SUCCESS' &&
+              (lastStatus === 'SUCCESS' || lastStatus === undefined)) {
+              successes += 1;
+            } else if (currentStatus === 'FAILURE' &&
+              (lastStatus === 'FAILURE' || lastStatus === undefined)) {
+              failures += 1;
+            } else {
+              currentStatus = 'stop';
+              lastStatus = 'stop';
+            }
+          });
+
+          if (successes >= failures) {
+            result = successes.toString() + ' consecutive successes';
+          } else {
+            result = failures.toString() + ' consecutive failures';
+            console.log('FAILURES');
+          }
+
+          console.log(result);
+
+          resolve(result);
+        });
+      });
+
+      return DS.PromiseObject.create({ promise: consecutive });
+    }
+  }),
 
   buildAction: Ember.computed('buildStatus', {
     get() {
